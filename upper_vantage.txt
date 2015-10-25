@@ -1,0 +1,6 @@
+[name]
+Upper vantage point
+[desc]
+You are now at a higher point, it's sandy and the dirt track runs to an end.
+[exits]
+down=start

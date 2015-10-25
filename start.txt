@@ -1,0 +1,12 @@
+[name]
+Costal vantage point
+[desc]
+You are by the coast at a high vantage-point looking over a vast ocean, 
+the sun is glistening off the water. Between bushes a well-trodden path 
+runs through.
+[extra]
+water,ocean=The water is glistening and blue
+bushes=The bushes are covered in sharp barbs
+[exits]
+up=upper_vantage
+down=lower_vantage
