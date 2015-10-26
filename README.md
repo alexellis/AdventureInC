@@ -3,7 +3,7 @@ Back to basics with simple text adventure game in C
 
 # Starting the game
 The first room to be loaded is `start.txt`.
-Clone the repo and then type sh make.sh.. requires cc to be available in $PATH.
+Clone the repo and then `type make` this requires cc to be available in $PATH.
 
 # Purpose
 This project is an attempt to learn some basics of the C programming language. 
