@@ -7,9 +7,16 @@
 #define NORMAL 0
 #define ATTRIB 1
 
+struct alias {
+	char src[30];
+	char dest[30];
+	struct alias * next;
+};
+
 struct player {
 	struct room * currentRoom;
 	char name [55];
+	struct alias * aliases; 
 };
 
 struct connection {
@@ -33,7 +40,7 @@ int trimEnd(char *line, char end){
 	int newLine = line[strlen(line)-1] == end;
 	if(newLine) {
 		line[strlen(line)-1]='\0';
-	}else{
+	}else {
 		return -1;
 	}
 	return 0;
@@ -82,8 +89,7 @@ void walk_connections(struct connection * pt){
 
 
 struct room* read_room(const char * path) {
-
-	struct room* current= (struct room*) malloc ( sizeof(struct room) );
+	struct room* current = (struct room*) malloc ( sizeof(struct room) );
 	memset(current->desc, '\0', 160*3);
 	memset(current->name, '\0', 150);
 
@@ -91,14 +97,15 @@ struct room* read_room(const char * path) {
 	strcpy(extPath, path);
 	strcat(extPath, ".txt");
 
-
 	FILE* fp;
 	fp = fopen(extPath, "rb");
 	if(fp ==0){
 
 	 	return NULL;
 	}
-	
+	free(extPath);
+	extPath=NULL;
+
 	char currentSection[35];
 
 	char line[160];
@@ -112,7 +119,7 @@ struct room* read_room(const char * path) {
 
 		lineType = getLineType(ptr);
 		if(lineType == ATTRIB) {
-			strip(ptr, &currentSection, 35);
+			strip(ptr, (char*)&currentSection, 35);
 			//printf("Section: %s\n", currentSection);
 		} else {
 			if(strcmp(currentSection, "name") == 0) {
@@ -192,6 +199,22 @@ int has_exit(struct room * current, const char * to) {
 	return found;
 }
 
+int find_alias(char * expanded, char * cmd_buffer ,struct player * me) {
+	struct alias * head = me->aliases;
+	int found = 0;
+	do {
+		int isMatch = strcmp(head->src, cmd_buffer)==0;
+		if(isMatch) {
+			strcpy(expanded, head->dest);
+			found = 1;
+			break;
+		}
+		head=head->next;
+	} while(head!=NULL && strlen(head->src)>0);
+
+	return found;
+}
+
 void read_player(struct player * me) {
 	printf("Welcome to the game.\nPlayer name: ");
 	fgets(me->name, 55, stdin);
@@ -209,6 +232,46 @@ void look_player(struct player * me) {
 	print_room(me->currentRoom);
 }
 
+int execute_command(struct player * me, char * cmd_buffer) {
+	int ret=0;
+	if(strlen(cmd_buffer) == 0) {
+		printf("What?\n");
+	}
+	else if(has_exit(me->currentRoom, cmd_buffer)) {
+		printf("You go: %s\n", cmd_buffer);
+		char room_file[30];
+		get_exit((char*)&room_file, me->currentRoom, cmd_buffer);
+		//free currentRoom..
+
+		struct room * nextRoom = read_room(room_file);
+		if(nextRoom != NULL) {
+			// Also free links
+			// free(me->currentRoom);
+			me->currentRoom = nextRoom ;
+		} else {
+			printf("You didn't move.\n");
+		}
+	}
+	else if(strcmp(cmd_buffer, "look")==0){
+		look_player(me);
+	}
+	else if(strcmp(cmd_buffer, "quit")==0){
+		ret = 1;
+	}
+	else {
+		char expanded[30];
+		if(find_alias(&expanded, cmd_buffer, me)){
+			printf("Using alias %s.\n", expanded);
+			int childRet = execute_command(me, &expanded);
+			ret= childRet;
+
+		} else {
+			printf("I do not understand: '%s'.. ?\n", cmd_buffer);
+		}
+	}
+	return ret;
+}
+
 void loop_player(struct player * me) {
 	char cmd_buffer[80];
 
@@ -217,30 +280,9 @@ void loop_player(struct player * me) {
 		if(fgets(cmd_buffer, 80, stdin)) {
 			trimEnd(&cmd_buffer, '\n');
 
-			if(strlen(cmd_buffer) == 0) {
-				printf("What?\n");
-			}
-			else if(has_exit(me->currentRoom, cmd_buffer)) {
-				printf("You go: %s\n", cmd_buffer);
-				char * room_file[30];
-				get_exit(&room_file, me->currentRoom, cmd_buffer);
-				//free currentRoom..
-
-				struct room * nextRoom = read_room(room_file);
-				if(nextRoom!=NULL) {
-					me->currentRoom = nextRoom ;
-				}else {
-					printf("You didn't move.\n");
-				}
-			}
-			else if(strcmp(cmd_buffer, "look")==0){
-				look_player(me);
-			}
-			else if(strcmp(cmd_buffer, "quit")==0){
+			int ret = execute_command(me, (char*)&cmd_buffer);
+			if(ret){
 				break;
-			}
-			else {
-				printf("I do not understand: '%s'.. ?\n", cmd_buffer);
 			}
 		}else {
 			break;
@@ -249,12 +291,53 @@ void loop_player(struct player * me) {
 	printf("OK... Bye.\n");
 }
 
+void initalizeAlias(struct alias * item){
+	memset(item->src, '\0', sizeof(char)*30);
+	memset(item->dest, '\0', sizeof(char)*30);
+	item->next=NULL;
+}
+
+void push_alias(struct player *me, const char * src, const char * dest) {
+	if(me->aliases == NULL) {
+		struct alias * aliases = (struct alias*)malloc(sizeof(struct alias));
+		initalizeAlias(aliases);
+		me->aliases=aliases;
+	}
+
+	struct alias * head = me->aliases;
+	do {
+
+		if(strlen ( head->src ) == 0) {
+			break;
+		} else if(head->next !=NULL) {
+			head = head->next;
+		} else {
+			struct alias * nextItem = (struct alias*)malloc(sizeof(struct alias));
+			initalizeAlias(nextItem);
+			head->next = nextItem;
+			head = head->next;
+			
+		}
+	} while(1);
+
+	if(head!=NULL) {
+		strcpy(head->src, src);
+		strcpy(head->dest, dest);
+	}
+}
+
 int main(void) {
 	const char * path="start";
 	struct room *current = read_room(path);
 
 	struct player me;
+	me.aliases = (void*)NULL;
 	read_player(&me);
+	push_alias(&me, "l", "look");
+	push_alias(&me, "u", "up");
+	push_alias(&me, "d", "down");
+	push_alias(&me, "lo", "look");	// Just an extra alias
+
 
 	me.currentRoom = current;
 	printf("Welcome: %s\n",me.name);
