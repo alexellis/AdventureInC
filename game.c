@@ -232,7 +232,7 @@ void look_player(struct player * me) {
 	print_room(me->currentRoom);
 }
 
-int execute_command(struct player * me, char * cmd_buffer) {
+int execute_command(struct player * me, char * cmd_buffer, char * cmd_param) {
 	int ret=0;
 	if(strlen(cmd_buffer) == 0) {
 		printf("What?\n");
@@ -247,23 +247,28 @@ int execute_command(struct player * me, char * cmd_buffer) {
 		if(nextRoom != NULL) {
 			// Also free links
 			// free(me->currentRoom);
-			me->currentRoom = nextRoom ;
+			me->currentRoom = nextRoom;
 		} else {
 			printf("You didn't move.\n");
 		}
 	}
-	else if(strcmp(cmd_buffer, "look")==0){
-		look_player(me);
+	else if(strcmp(cmd_buffer, "look")==0) {
+		if(cmd_param!=NULL &&strlen(cmd_param) > 0) {
+			printf("You do not notice anything special about: %s.\n", cmd_param);
+		}
+		else {
+			look_player(me);
+		}
 	}
 	else if(strcmp(cmd_buffer, "quit")==0){
 		ret = 1;
 	}
 	else {
 		char expanded[30];
-		if(find_alias(&expanded, cmd_buffer, me)){
+		if(find_alias(&expanded, cmd_buffer, me)) {
 			printf("Using alias %s.\n", expanded);
-			int childRet = execute_command(me, &expanded);
-			ret= childRet;
+			int childRet = execute_command(me, &expanded, cmd_param);
+			ret = childRet;
 
 		} else {
 			printf("I do not understand: '%s'.. ?\n", cmd_buffer);
@@ -274,13 +279,41 @@ int execute_command(struct player * me, char * cmd_buffer) {
 
 void loop_player(struct player * me) {
 	char cmd_buffer[80];
-
+	char cmd_param[80];
 	while(1) {
 		printf("> ");
+		memset(&cmd_buffer, '\0',sizeof(char)*80);
 		if(fgets(cmd_buffer, 80, stdin)) {
 			trimEnd(&cmd_buffer, '\n');
 
-			int ret = execute_command(me, (char*)&cmd_buffer);
+			// parse argument
+			// 'look me' ->
+			// ' me'
+			char * spacep = strstr(&cmd_buffer, " ");
+			char * cmd_buffer_p;
+			if(spacep) {
+				memset(&cmd_param, '\0',sizeof(char)*80);
+
+				// ' me'
+				strcpy(&cmd_param, spacep);
+
+				// 'look me'
+				cmd_buffer_p=&cmd_buffer;
+
+				while(cmd_buffer_p != spacep) {
+					cmd_buffer_p++;
+				}
+				// 'look me' -> 'look'
+				*cmd_buffer_p='\0';
+
+				// ' me' -> 'me'
+				spacep++;
+				cmd_buffer_p=spacep;
+			} else {
+				memset(&cmd_param, '\0',sizeof(char)*80);
+				cmd_buffer_p=&cmd_param;
+			}
+			int ret = execute_command(me, (char*)&cmd_buffer, cmd_buffer_p);
 			if(ret){
 				break;
 			}
