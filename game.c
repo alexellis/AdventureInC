@@ -5,6 +5,20 @@
 #include "lib/types.h"
 #include "lib/loader.h"
 
+
+void showHelp() {
+	printf(
+"================================================================================\n"
+"Help\n"
+"================================================================================\n"
+" (l)ook\t\tinspect environment\n"
+" (u)p\t\tmove up\n"
+" (d)own\t\tmove down\n"
+" quit\t\texit the game\n"
+" (h)elp\t\tshow this screen\n"
+    );
+}
+
 void print_room(struct room * current) {
 	printf("%s\n%s\n", current->name, current->desc);
 
@@ -107,7 +121,10 @@ int execute_command(struct player * me, char * cmd_buffer, char * cmd_param) {
 			look_player(me);
 		}
 	}
-	else if(strcmp(cmd_buffer, "quit")==0){
+	else if(strcmp(cmd_buffer, "help")==0) { 
+		showHelp();
+	}
+	else if(strcmp(cmd_buffer, "quit")==0) {
 		ret = 1;
 	}
 	else {
@@ -211,8 +228,9 @@ void initPlayer(struct player * me) {
 	memset(me->name, '\0', sizeof(me->name));
 }
 
+
 int main(void) {
-	const char * path="start";
+	const char * path = "start";
 	struct room *current = read_room(path);
 
 	struct player me;
@@ -222,6 +240,7 @@ int main(void) {
 	push_alias(&me, "u", "up");
 	push_alias(&me, "d", "down");
 	push_alias(&me, "lo", "look");	// Just an extra alias
+	push_alias(&me, "h", "help");
 
 
 	me.currentRoom = current;
