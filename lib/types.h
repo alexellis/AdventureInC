@@ -2,10 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 
 #define UNSET -1
 #define NORMAL 0
 #define ATTRIB 1
+#define COMMENT 2
+
+#define PROMPT "> "
 
 struct alias {
 	char src[30];
@@ -16,7 +20,8 @@ struct alias {
 struct player {
 	struct room * currentRoom;
 	char name [55];
-	struct alias * aliases; 
+	struct alias * aliases;
+	time_t connectionTime;
 };
 
 struct connection {

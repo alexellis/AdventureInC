@@ -5,7 +5,7 @@ LIB=lib/adventure.c lib/loader.c
 HEADER=lib/types.h
 
 all: library
-	$(CC) $(SRC) -o game -lm -L. -ladventure
+	$(CC) -g $(SRC) -o game -lm -L. -ladventure
 library:
 	$(CC) -c $(LIB) && \
 	ar rc ./libadventure.a ./adventure.o ./loader.o

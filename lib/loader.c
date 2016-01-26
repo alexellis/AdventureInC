@@ -1,10 +1,15 @@
 #include "types.h"
 #include "loader.h"
 
-int getLineType(const char*ptr) {
+const char* prompt = "> ";
 
-	if(*ptr=='['){
+
+int getLineType(const char * ptr) {
+
+	if(*ptr == '[') {
 		return ATTRIB;
+	} else if(*ptr == '#') {
+		return COMMENT;
 	}
 
 	return NORMAL;
@@ -37,8 +42,8 @@ void read_connection(struct connection * next, char * line) {
 }
 
 void walk_connections(struct connection * pt){
-	while(pt->next){
-		pt=pt->next;
+	while(pt->next!=NULL) {
+		pt = pt->next;
 	}
 }
 
@@ -72,6 +77,9 @@ struct room* read_room(const char * path) {
 		trimEnd(ptr, '\n');
 
 		lineType = getLineType(ptr);
+		if(lineType == COMMENT) {
+			continue;
+		}
 		if(lineType == ATTRIB) {
 			strip(ptr, (char*)&currentSection, 35);
 			//printf("Section: %s\n", currentSection);

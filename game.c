@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
 #include "lib/types.h"
 #include "lib/loader.h"
-
 
 void showHelp() {
 	printf(
@@ -12,6 +12,7 @@ void showHelp() {
 "Help\n"
 "================================================================================\n"
 " (l)ook\t\tinspect environment, or item\n"
+" look me\tinformation on current player\n"
 " (u)p\t\tmove up\n"
 " (d)own\t\tmove down\n"
 " quit\t\texit the game\n"
@@ -87,6 +88,7 @@ void read_player(struct player * me) {
 	if(*ch=='\n') {
 		*ch='\0';
 	}
+	time(&me->connectionTime);
 }
 
 void look_player(struct player * me) {
@@ -113,15 +115,30 @@ int execute_command(struct player * me, char * cmd_buffer, char * cmd_param) {
 			printf("You didn't move.\n");
 		}
 	}
-	else if(strcmp(cmd_buffer, "look")==0) {
-		if(cmd_param!=NULL &&strlen(cmd_param) > 0) {
-			printf("You do not notice anything special about: %s.\n", cmd_param);
+	else if(strcmp(cmd_buffer, "look") == 0) {
+		if(cmd_param != NULL && strlen(cmd_param) > 0) {
+	//		printf("%s\n", cmd_param);
+			if(strcmp(cmd_param, "me") == 0) {
+				time_t now;
+				time(&now);
+				int seconds = (int)difftime(now, me->connectionTime);
+
+				printf(
+"================================================================================\n"
+"Player: %s\n"
+"================================================================================\n"
+"Current room: %s\n"
+"Connected for: %d seconds\n",
+				me->name, (me->currentRoom)->name, seconds);
+			} else {
+				printf("You do not notice anything special about: '%s'.\n", cmd_param);
+			}
 		}
 		else {
 			look_player(me);
 		}
 	}
-	else if(strcmp(cmd_buffer, "help")==0) { 
+	else if(strcmp(cmd_buffer, "help") == 0) { 
 		showHelp();
 	}
 	else if(strcmp(cmd_buffer, "quit")==0) {
@@ -141,43 +158,44 @@ int execute_command(struct player * me, char * cmd_buffer, char * cmd_param) {
 	return ret;
 }
 
+int parse_parameter(char* cmd_buffer, char* cmd_param) {
+//	printf("cmd_buffer=%s\n", cmd_buffer);
+	// parse argument
+	// 'look me' ->
+	// ' me'
+	int parsedParam = 0;
+	char * spacep = strstr(cmd_buffer, " ");
+	char * cmd_buffer_p;
+	if(spacep) {
+		memset(cmd_param, '\0', sizeof(char)*80);
+
+		while(cmd_buffer_p != spacep) {
+			cmd_buffer_p++;
+		}
+		// 'look me' -> 'look'
+		*cmd_buffer_p='\0';
+
+		spacep++;
+		// ' me'
+		strcpy(cmd_param, spacep);
+		parsedParam = 1;
+	}
+}
+
 void loop_player(struct player * me) {
 	char cmd_buffer[80];
 	char cmd_param[80];
+
 	while(1) {
-		printf("> ");
-		memset(&cmd_buffer, '\0',sizeof(char)*80);
+		printf(PROMPT);
+		memset(&cmd_buffer, '\0', sizeof(char)*80);
+		memset(&cmd_param, '\0', sizeof(char)*80);
+
 		if(fgets(cmd_buffer, 80, stdin)) {
 			trimEnd(&cmd_buffer, '\n');
 
-			// parse argument
-			// 'look me' ->
-			// ' me'
-			char * spacep = strstr(&cmd_buffer, " ");
-			char * cmd_buffer_p;
-			if(spacep) {
-				memset(&cmd_param, '\0',sizeof(char)*80);
-
-				// ' me'
-				strcpy(&cmd_param, spacep);
-
-				// 'look me'
-				cmd_buffer_p=&cmd_buffer;
-
-				while(cmd_buffer_p != spacep) {
-					cmd_buffer_p++;
-				}
-				// 'look me' -> 'look'
-				*cmd_buffer_p='\0';
-
-				// ' me' -> 'me'
-				spacep++;
-				cmd_buffer_p=spacep;
-			} else {
-				memset(&cmd_param, '\0',sizeof(char)*80);
-				cmd_buffer_p=&cmd_param;
-			}
-			int ret = execute_command(me, (char*)&cmd_buffer, cmd_buffer_p);
+			int parsed = parse_parameter(&cmd_buffer, &cmd_param);
+			int ret = execute_command(me, (char*)&cmd_buffer, cmd_param);
 			if(ret){
 				break;
 			}
@@ -228,7 +246,6 @@ void initPlayer(struct player * me) {
 	memset(me->name, '\0', sizeof(me->name));
 }
 
-
 int main(void) {
 	const char * path = "start";
 	struct room *current = read_room(path);
@@ -241,7 +258,6 @@ int main(void) {
 	push_alias(&me, "d", "down");
 	push_alias(&me, "lo", "look");	// Just an extra alias
 	push_alias(&me, "h", "help");
-
 
 	me.currentRoom = current;
 	printf("Welcome: %s\n",me.name);

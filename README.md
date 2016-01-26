@@ -22,6 +22,35 @@ make
 ./game
 ```
 
+#### Room format
+
+Rooms are of the format:
+
+```
+[name]
+Short name max length: 150 chars
+[desc]
+Multi-line is
+OK, but max length is 160*3 chars.
+[extra]
+item1,alias1=item1 description
+item2=item2 description
+[exits]
+direction=file_name_without_extension
+```
+
+**[desc]**
+
+Multi-line is OK.
+
+**[extra]**
+
+Not implemented
+
+**[exit]**
+
+Alias on left, do not include .txt on right-hand side.
+
 Then enter your player name and have a look around.
 
 ================================
