@@ -1,4 +1,4 @@
-CC=GCC
+CC=gcc
 CFLAGS= -Wall -std=c99
 SRC=./game.c
 LIB=lib/adventure.c lib/loader.c

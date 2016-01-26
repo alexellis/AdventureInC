@@ -11,7 +11,7 @@ void showHelp() {
 "================================================================================\n"
 "Help\n"
 "================================================================================\n"
-" (l)ook\t\tinspect environment\n"
+" (l)ook\t\tinspect environment, or item\n"
 " (u)p\t\tmove up\n"
 " (d)own\t\tmove down\n"
 " quit\t\texit the game\n"
