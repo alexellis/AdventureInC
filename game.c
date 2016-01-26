@@ -165,7 +165,7 @@ int parse_parameter(char* cmd_buffer, char* cmd_param) {
 	// ' me'
 	int parsedParam = 0;
 	char * spacep = strstr(cmd_buffer, " ");
-	char * cmd_buffer_p;
+	char * cmd_buffer_p = cmd_buffer;
 	if(spacep) {
 		memset(cmd_param, '\0', sizeof(char)*80);
 
