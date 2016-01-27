@@ -41,16 +41,23 @@ void read_connection(struct connection * next, char * line) {
 	strcpy(next->file, strtok(NULL,sep));
 }
 
-void walk_connections(struct connection * pt){
+void walk_connections(struct connection * pt) {
 	while(pt->next!=NULL) {
 		pt = pt->next;
 	}
+}
+
+void init_connection(struct connection* pt) {
+	memset(pt->file, '\0', 30);
+	memset(pt->direction, '\0', 30);
+	pt->next = NULL;
 }
 
 struct room* read_room(const char * path) {
 	struct room* current = (struct room*) malloc ( sizeof(struct room) );
 	memset(current->desc, '\0', 160*3);
 	memset(current->name, '\0', 150);
+	current->link = NULL;
 
 	char * extPath = malloc( sizeof(char) * strlen(path) +(strlen(".txt") + 1) );
 	strcpy(extPath, path);
@@ -99,12 +106,14 @@ struct room* read_room(const char * path) {
 
 				if(!current->link) {
 				 	current->link = (struct connection*)malloc(sizeof(struct connection));
+				 	init_connection(current->link);
 				 	ptr = current->link;
 				}
 				else {
 					ptr = current->link;
 				 	walk_connections(ptr);
 				 	ptr->next = (struct connection*)malloc(sizeof(struct connection));
+				 	init_connection(ptr->next);
 				 	ptr=ptr->next;
 				 }
 

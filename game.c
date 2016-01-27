@@ -103,7 +103,8 @@ int execute_command(struct player * me, char * cmd_buffer, char * cmd_param) {
 	else if(has_exit(me->currentRoom, cmd_buffer)) {
 		printf("You go: %s\n", cmd_buffer);
 		char room_file[30];
-		get_exit((char*)&room_file, me->currentRoom, cmd_buffer);
+		memset(&room_file, '\0', sizeof(char)*30);
+		get_exit(&room_file, me->currentRoom, cmd_buffer);
 		//free currentRoom..
 
 		struct room * nextRoom = read_room(room_file);
@@ -167,8 +168,6 @@ int parse_parameter(char* cmd_buffer, char* cmd_param) {
 	char * spacep = strstr(cmd_buffer, " ");
 	char * cmd_buffer_p = cmd_buffer;
 	if(spacep) {
-		memset(cmd_param, '\0', sizeof(char)*80);
-
 		while(cmd_buffer_p != spacep) {
 			cmd_buffer_p++;
 		}
