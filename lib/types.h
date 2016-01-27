@@ -3,12 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
-
-#define UNSET -1
-#define NORMAL 0
-#define ATTRIB 1
-#define COMMENT 2
-
+#define MAX_ROOM_DESC 160*3
 #define PROMPT "> "
 
 struct alias {
@@ -32,7 +27,7 @@ struct connection {
 
 struct room {
 	char name[150];
-	char desc[160*3];
+	char desc[MAX_ROOM_DESC];
 	struct connection *link;
 };
 
