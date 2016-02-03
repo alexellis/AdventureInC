@@ -1,0 +1,6 @@
+[name]
+Lower vantage point
+[desc]
+You are on a well-worn dirt path overgrown with weeds and brambles.
+[exits]
+up=start

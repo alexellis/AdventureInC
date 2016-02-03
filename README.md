@@ -11,7 +11,7 @@ This is a text-based adventure game written in C as a learning exercise.
 - Aliases added for player commands
 - Separation of parsing and executing commands
 - Loading and parsing a room text file
-- Added start.txt and upper_vantage.txt rooms.
+- Added start.txt and upper\_vantage.txt rooms.
 
 ### Build and running
 

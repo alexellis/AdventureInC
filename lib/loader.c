@@ -1,11 +1,12 @@
 #include "types.h"
 #include "loader.h"
+#define ROOM_EXT_NAME ".txt"
 
 void init_connection(struct connection* pt);
 
 FILE* openRoomFile(const char * path) {
 	FILE* fp;
-	char * extPath = malloc(sizeof(char) * strlen(path) +(strlen(".txt") + 1));
+	char * extPath = malloc(sizeof(char) * strlen(path) +(strlen(ROOM_EXT_NAME) + 1));
 	strcpy(extPath, path);
 	strcat(extPath, ".txt");
 
@@ -42,7 +43,10 @@ struct room* read_room(const char * path) {
 
 	while(!feof(fp)) {
 		char *ptr = (char*)&line;
-		fgets(ptr, 160, fp);
+		int lineRead = fgets(ptr, 160, fp);
+		if(!lineRead) {
+			break;
+		}
 		trimEnd(ptr, '\n');
 
 		lineType = getLineType(ptr);
@@ -80,7 +84,6 @@ struct room* read_room(const char * path) {
 				 	init_connection(ptr->next);
 				 	ptr = ptr->next;
 				 }
-
 				int headPopulated = strlen(ptr->file);
 				read_connection(ptr, line);
 			}
@@ -141,4 +144,3 @@ void init_connection(struct connection* pt) {
 	memset(pt->direction, '\0', 30);
 	pt->next = NULL;
 }
-
