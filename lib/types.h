@@ -25,10 +25,17 @@ struct connection {
 	struct connection * next;
 };
 
+struct item {
+	char name[50];
+	char description[100];
+	struct item *link;
+};
+
 struct room {
 	char name[150];
 	char desc[MAX_ROOM_DESC];
 	struct connection *link;
+	struct item *items;
 };
 
 int trimEnd(char *line, char end);

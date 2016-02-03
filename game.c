@@ -13,6 +13,7 @@ void showHelp() {
 "================================================================================\n"
 " (l)ook\t\tinspect environment, or item\n"
 " look me\tinformation on current player\n"
+" (ex)amine\texamine surroundings\n"
 " (u)p\t\tmove up\n"
 " (d)own\t\tmove down\n"
 " quit\t\texit the game\n"
@@ -66,7 +67,7 @@ int has_exit(struct room * current, const char * to) {
     return found;
 }
 
-int find_alias(char * expanded, char * cmd_buffer ,struct player * me) {
+int find_alias(char * expanded, char * cmd_buffer, struct player * me) {
     struct alias * head = me->aliases;
     int found = 0;
     do {
@@ -124,6 +125,18 @@ struct commandResult execute_command(struct player * me, char * cmd_buffer, char
         } else {
             printf("You didn't move.\n");
         }
+    }
+    else if(strcmp(cmd_buffer, "examine") == 0) {
+      if((me->currentRoom)->items == NULL) {
+        printf("You do not notice anything.\n");
+      } else {
+        printf("You notice:-\n");
+        struct item * itemPtr = (me->currentRoom)->items;
+          do {
+            printf("%s\n", itemPtr->name);
+            itemPtr = itemPtr->link;
+          } while(itemPtr != NULL);
+      }
     }
     else if(strcmp(cmd_buffer, "look") == 0) {
         if(cmd_param != NULL && strlen(cmd_param) > 0) {
@@ -243,7 +256,6 @@ void push_alias(struct player *me, const char * src, const char * dest) {
             initalizeAlias(nextItem);
             head->next = nextItem;
             head = head->next;
-
         }
     } while(1);
 
@@ -270,6 +282,7 @@ int main(void) {
     push_alias(&me, "d", "down");
     push_alias(&me, "lo", "look");  // Just an extra alias
     push_alias(&me, "h", "help");
+    push_alias(&me, "ex", "examine");
 
     me.currentRoom = current;
     printf("Welcome: %s\n",me.name);

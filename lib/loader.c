@@ -19,10 +19,37 @@ FILE* openRoomFile(const char * path) {
 	return fp;
 }
 
+void init_item(struct item * current) {
+	memset(current->name, '\0', 50);
+	memset(current->description, '\0', 100);
+	current->link = NULL;
+}
+
 void init_room(struct room * current) {
 	memset(current->desc, '\0', 160*3);
 	memset(current->name, '\0', 150);
 	current->link = NULL;
+}
+
+void read_item(struct item * next, char * line) {
+	strcpy(next->name, strtok(line, DIRECTION_SEP));
+	strcpy(next->description, strtok(NULL, DIRECTION_SEP));
+}
+
+void processItem(struct room * current, char * line) {
+	struct item * itemPtr=current->items;
+	if(itemPtr == NULL) {
+		current->items = (struct item*) malloc (sizeof(struct item));
+		itemPtr = current->items;
+	} else {
+		while(itemPtr->link != NULL) {
+			itemPtr = itemPtr->link;
+		}
+		itemPtr->link = (struct item*) malloc (sizeof(struct item));
+		itemPtr = itemPtr->link;
+	}
+	init_item(itemPtr);
+	read_item(itemPtr,line);
 }
 
 struct room* read_room(const char * path) {
@@ -86,10 +113,10 @@ struct room* read_room(const char * path) {
 				 }
 				int headPopulated = strlen(ptr->file);
 				read_connection(ptr, line);
+			} else if(strcmp(currentSection, "items") == 0) {
+				processItem(current, line);
 			}
 		}
-
-		//printf("lineType=[%d] %s\n", lineType, line);
 		lastLineType=lineType;
 	}
 	fclose(fp);
@@ -97,7 +124,6 @@ struct room* read_room(const char * path) {
 }
 
 int getLineType(const char * ptr) {
-
 	if(*ptr == '[') {
 		return ATTRIB;
 	} else if(*ptr == '#') {
@@ -106,7 +132,6 @@ int getLineType(const char * ptr) {
 
 	return NORMAL;
 }
-
 
 void strip(const char * ptr, char * currentSection, int max) {
 	char *walker = currentSection;
