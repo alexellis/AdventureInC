@@ -1,6 +1,6 @@
 language: c
 compiler:
-   - gcc
+ - gcc
 install:
-   - make
+ - make all
 
