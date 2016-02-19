@@ -5,9 +5,9 @@ LIB=lib/adventure.c lib/loader.c
 HEADER=lib/types.h
 
 all: library
-	$(CC) -g $(SRC) -o game -lm -L. -ladventure
+	$(CC) -std=c99 -g $(SRC) -o game -lm -L. -ladventure
 library:
-	$(CC) -c $(LIB) && \
+	$(CC) -std=c99 -c $(LIB) && \
 	ar rc ./libadventure.a ./adventure.o ./loader.o
 
 clean:
