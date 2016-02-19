@@ -1,5 +1,7 @@
 ## AdventureInC
 
+[![Build Status](https://travis-ci.org/alexellis/AdventureInC.svg?branch=master)](https://travis-ci.org/alexellis/AdventureInC)
+
 ### Description
 
 This is a text-based adventure game written in C as a learning exercise.
