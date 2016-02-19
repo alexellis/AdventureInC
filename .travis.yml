@@ -1,6 +1,6 @@
 language: c
 compiler:
  - gcc
-install:
- - make all
-
+script:
+ - make
+install: false
