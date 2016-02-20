@@ -6,6 +6,9 @@
 #include "lib/types.h"
 #include "lib/loader.h"
 
+struct room * cached_read_room(World *w, const char *path);
+void world_add_room(World *w, struct room *room);
+
 void showHelp() {
     printf(
 "================================================================================\n"
@@ -84,7 +87,7 @@ int find_alias(char * expanded, char * cmd_buffer, struct player * me) {
 }
 
 void read_player(struct player * me) {
-    printf("Welcome to the game.\nPlayer name: ");
+    printf("Welcome to the Adventure.\n\nEnter your name: ");
     fgets(me->name, 55, stdin);
     char * ch = me->name;
     while(*ch != '\0'){
@@ -102,6 +105,7 @@ void look_player(struct player * me) {
 }
 
 struct commandResult execute_command(struct player * me, char * cmd_buffer, char * cmd_param) {
+    World *w = me->world;
     struct commandResult result;
     int ret = 0;
     int moved = 0;
@@ -116,10 +120,11 @@ struct commandResult execute_command(struct player * me, char * cmd_buffer, char
         get_exit(&room_file, me->currentRoom, cmd_buffer);
         //free currentRoom..
 
-        struct room * nextRoom = read_room(room_file);
+        struct room * nextRoom = cached_read_room(w, room_file);
         if(nextRoom != NULL) {
-            // Also free links
-            // free(me->currentRoom);
+            // Also free links, items etc
+            //free(me->currentRoom);
+            me->currentRoom=NULL;
             me->currentRoom = nextRoom;
             moved = 1;
         } else {
@@ -160,6 +165,17 @@ struct commandResult execute_command(struct player * me, char * cmd_buffer, char
         else {
             look_player(me);
         }
+    }
+    else if(strcmp(cmd_buffer, "mem") == 0) {
+      printf("World: %s\n\n", w->name);
+      LoadedRoom *head = w->rooms;
+      printf("Loaded rooms:\n");
+      do {
+        printf("- %s\n", (head->current)->fileName);
+        head = head->next;
+      } while(head != NULL);
+        // && head->next!=NULL);
+
     }
     else if(strcmp(cmd_buffer, "help") == 0) {
         showHelp();
@@ -265,17 +281,53 @@ void push_alias(struct player *me, const char * src, const char * dest) {
     }
 }
 
-void initPlayer(struct player * me) {
+void initPlayer(struct player * me, World *w) {
     me->aliases = (void*)NULL;
     memset(me->name, '\0', sizeof(me->name));
+    me->world = w;
+}
+
+void world_add_room(World *w, struct room *current) {
+  if(w->rooms == NULL) {
+
+    w->rooms=(LoadedRoom*)malloc(sizeof(LoadedRoom));
+    LoadedRoom *p1=w->rooms;
+    p1->current = current;
+    p1->next = NULL;
+    return;
+  }
+
+  LoadedRoom* p = w->rooms;
+  printf("%s\n", p->current);
+  while(p->next != NULL) {
+    p = p->next;
+  }
+  p->next = (LoadedRoom*)malloc(sizeof(LoadedRoom));
+  p=p->next;
+  p->current = current;
+  p->next = NULL;
+}
+
+struct room * cached_read_room(World *w, const char * path) {
+  LoadedRoom *head = w->rooms;
+  while(head != NULL) {
+    if(strcmp(head->current->fileName, path)==0) {
+      return head->current;
+    }
+    head = head->next;
+  }
+
+  struct room *theRoom = read_room(path);
+  world_add_room(w, theRoom);
+  return theRoom;
 }
 
 int main(void) {
-    const char * path = "start";
-    struct room *current = read_room(path);
+    World *w = new_world("Adventure In C");
+    struct room *current = cached_read_room(w, "start");
 
     struct player me;
-    initPlayer(&me);
+    initPlayer(&me, w);
     read_player(&me);
     push_alias(&me, "l", "look");
     push_alias(&me, "u", "up");
@@ -285,7 +337,7 @@ int main(void) {
     push_alias(&me, "ex", "examine");
 
     me.currentRoom = current;
-    printf("Welcome: %s\n",me.name);
+    printf("%s enters the world.\n\n",me.name);
     look_player(&me);
     loop_player(&me);
 }

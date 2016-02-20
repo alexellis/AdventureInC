@@ -2,6 +2,14 @@
 #include "loader.h"
 #define ROOM_EXT_NAME ".txt"
 
+
+World* new_world(const char * name) {
+	World *w=malloc(sizeof(World));
+	w->name=name;
+	w->rooms = NULL;
+	return w;
+}
+
 void init_connection(struct connection* pt);
 
 FILE* openRoomFile(const char * path) {
@@ -15,7 +23,7 @@ FILE* openRoomFile(const char * path) {
 	 	return fp;
 	}
 	free(extPath);
-	extPath = NULL;	// Do I also need to 'null' the freed memory?
+	extPath = NULL;
 	return fp;
 }
 
@@ -28,6 +36,8 @@ void init_item(struct item * current) {
 void init_room(struct room * current) {
 	memset(current->desc, '\0', 160*3);
 	memset(current->name, '\0', 150);
+	memset(current->fileName, '\0', 200);
+
 	current->link = NULL;
 }
 
@@ -61,6 +71,7 @@ struct room* read_room(const char * path) {
 
 	struct room* current = (struct room*) malloc ( sizeof(struct room) );
 	init_room(current);
+	memcpy(current->fileName, path,200);
 
 	char currentSection[35];
 

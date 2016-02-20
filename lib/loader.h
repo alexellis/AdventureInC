@@ -17,3 +17,5 @@ void walk_connections(struct connection * pt);
 struct room* read_room(const char * path);
 
 FILE* openRoomFile( const char * path);
+
+World* new_world(const char * name);
